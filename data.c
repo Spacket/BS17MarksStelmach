@@ -1,22 +1,31 @@
 #include <stdio.h>
 
 int main() {
-
-    int data[3];
-
-    struct data {
+    
+    struct value {
         int key;
         char value[];
     };
+    
+    
+    struct value data[3];
 }
 
 int put(int key, char value[]){
-    struct data d;
-    d.key = key;
-    d.value = value;
+    int i;
+    struct value v;
+    
+    v.key = key;
+    v.value = value;
+    
+    while(data[i] != NULL){
+        i++
+    }
+    
+    data[i] = v;
 }
 
-int get(char key, char res){
+int get(char key){
     char searched[];
     int i;
 
@@ -37,6 +46,10 @@ int get(char key, char res){
     }
 }
 
-int del(char* key, char* res){
+int del(char* key){
+    for(i = 0 ; i < sizeof(data); i++) {
 
+            if (key = data[i].key) {
+                data[i] = NULL;
+            }
 }
