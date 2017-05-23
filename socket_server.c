@@ -22,8 +22,7 @@ int main() {
     //Socket struct füllen
     server.sin_family = AF_INET;
     server.sin_addr.s_addr = hton1(INADDR_ANY); //jeder hat Zugriff auf den Server
-    server.sin_port = htons(
-            4711); //htons: converts an unsigned short integer from host byte order to Internet network byte order
+    server.sin_port = htons(4711); //htons: converts an unsigned short integer from host byte order to Internet network byte order
 
     //Socket binden
     if (bind(sock, (struct sockaddr *) &server, sizeof(server)) < 0) {
