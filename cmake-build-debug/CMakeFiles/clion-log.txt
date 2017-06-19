@@ -1,0 +1,2 @@
+CMakeLists.txt not found in C:\Users\fmark\BS17MarksStelmach
+Environment (MinGW/Cygwin) is not selected
