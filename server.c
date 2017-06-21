@@ -20,7 +20,7 @@ void bzero (void *to, size_t count){
 }
 
 int main(int argc, char *argv[]) {
-    int sock, fd, read_size, id, sem_id, *rc = 0, id2;
+    int sock, fd, read_size, id, sem_id, *rc, id2;
     socklen_t client_len;
     struct sockaddr_in server, client;
     char in[2000], out[2000];
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]) {
     }
 
     rc = shmat(id2,NULL,0);
-
+    *rc = 0;
 
     //sm für Daten
     id2 = shmget(IPC_PRIVATE, sizeof(data),IPC_CREAT | 0777);
@@ -83,14 +83,14 @@ int main(int argc, char *argv[]) {
 
     unsigned short marker[1];
     marker[0] = 1;
-    marker[1] = rc;
+    marker[1] = 1;
     semctl(sem_id, 2, SETALL, marker);
 
     struct sembuf down_w, up_w, down_r, up_r;
     down_w.sem_num = up_w.sem_num = 0;
     down_w.sem_flg = up_w.sem_flg = SEM_UNDO;
     down_w.sem_op = -1;
-    up_s.sem_op = 1;
+    up_w.sem_op = 1;
 
     down_r.sem_num = up_r.sem_num = 1;
     down_r.sem_flg = up_r.sem_flg = SEM_UNDO;
@@ -120,28 +120,41 @@ int main(int argc, char *argv[]) {
                 printf("\n---------------------------------------\n");
 
                 if(strcmp(tok[0], "put") == 0){
-                    if(rc == 0){
+                    printf("PUT gewählt - RC: %d\n", *rc);
+                    if(*rc == 0){
                         semop(sem_id, &down_w, 1);
                         PUT(tok[1], tok[2], temp, sm); // Referenz auf erste element
-                        sleep(5);
                         semop(sem_id, &up_w, 1);
                     }
                 }else if(strcmp(tok[0], "get") == 0){
-                    if(rc == 0) {
+                    semop(sem_id, &down_r, 1); //erhalte Zugriff auf rc
+                    *rc += 1;
+                    if(*rc == 1) {                   //erste Leser verweigert Zugriff für Schreibprozesse
                         semop(sem_id, &down_w, 1);
+                        printf("Erster Leser - Zugang erhalten\n");
                     }
-                    semop(sem_id, &up_r, 1);
+                    semop(sem_id, &up_r, 1);  //Zugriff auf rc freigeben
+                    printf("Leser hinzugefügt - Anzahl %d\n", *rc);
+                    sleep(10);
                     GET(tok[1], temp, sm);
-                    semop(sem_id, &down_r, 1);
-                    if(rc == 0){
+
+                    semop(sem_id, &down_r, 1);  //erhalte Zugriff auf rc
+                    *rc -= 1;
+                    if(*rc == 0) {                   //letzte Leser erlaubt Zugriff für Schreibprozesse
                         semop(sem_id, &up_w, 1);
+                        printf("\nLetzter Leser - Freigabe für Schreibprozesse\n");
                     }
+                    semop(sem_id, &up_r, 1);        //Zugriff auf rc freigeben
+
                 }else if(strcmp(tok[0], "del") == 0){
-                    semop(sem_id, &enter, 1);
+                    semop(sem_id, &down_w, 1);
                     DEL(tok[1], sm);
-                    semop(sem_id, &leave, 1);
+                    semop(sem_id, &up_w, 1);
                 }else if(strcmp(tok[0], "close") == 0){
                     semctl(sem_id, 0, IPC_RMID);
+                    semctl(sem_id, 1, IPC_RMID);
+                    shmctl(id, IPC_RMID, 0);
+                    shmctl(id2, IPC_RMID, 0);
                     shutdown(fd, 2);
                 } else{
                     printf("\nFalsche Eingabe !\n");
