@@ -3,14 +3,15 @@
 #include <string.h>
 
 //Wert hinzufuegen
-int PUT(char *key, char *value, char *res, data *sm) {
-    int i, j;
-
+int PUT(char *key, char *value, char *res, data *sm, int a[], int *temp2) {
+    int i, j, k;
     for (i = 0; i < STORELENGTH; i++) {
         if (strcmp(sm[i].key, key) == 0) {
             strncpy(res, sm[i].value, STORELENGTH);
             strcpy(sm[i].value, value);
             printf("\n--> KEY schon vorhanden und ueberschrieben, alte value ist: ");
+
+            *temp2 = i;
             return 0;
         }
     }
@@ -20,6 +21,7 @@ int PUT(char *key, char *value, char *res, data *sm) {
             printf("Platz gefunden, Stelle: %i\n", j);
             strcpy(sm[j].value, value);
             strcpy(sm[j].key, key);
+            *temp2 = 10;
             return 0;
         }
     }

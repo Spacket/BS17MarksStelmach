@@ -11,7 +11,12 @@ typedef struct{
     char value[STORELENGTH];
 }data;
 
-int PUT(char* key, char* value, char* res, data *sm);
+typedef struct{
+    long mtype;                     // message type
+    char mtext[100];
+}message;
+
+int PUT(char* key, char* value, char* res, data *sm, int a[], int* temp2);
 
 int GET(char* key, char* res, data *sm);
 
